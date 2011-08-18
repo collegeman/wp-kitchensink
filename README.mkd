@@ -2,9 +2,12 @@ This project is an attempt to create a consolidated set of examples for working 
 
 At present, it includes examples of
 
+* Using a `class` definition to scope your plugin
 * Using the Settings API to create custom preferences screens
+* Store all of your plugin's configurable options via a simple, internal API, and a single WP option
 * Creating backend UIs without custom stylesheets
 * Custom admin menus
+* AJAX 
 
 The examples are compatible with WordPress 2.9.x and 3.x, and have been tested through version 3.2.1.
 
