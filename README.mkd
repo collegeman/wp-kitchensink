@@ -1,4 +1,4 @@
-This projet is an attempt to create a consolidated set of examples for working with the WordPress core APIs.
+This project is an attempt to create a consolidated set of examples for working with the WordPress core APIs.
 
 At present, it includes examples of
 

@@ -141,6 +141,9 @@ class KitchenSink {
     
     ); // add_submenu_page
 
+    // this is a more consolidated version of the above:
+    //add_submenu_page( 'options-general.php', 'PHP Info', 'PHP Info', 'administrator', 'wp-plugin-phpinfo', array( $this, 'phpinfo' ) );
+
   }
 
 
