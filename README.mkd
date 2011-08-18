@@ -1,0 +1,12 @@
+This projet is an attempt to create a consolidated set of examples for working with the WordPress core APIs.
+
+At present, it includes examples of
+
+* Using the Settings API to create custom preferences screens
+* Creating backend UIs without custom stylesheets
+* Custom admin menus
+
+The examples are compatible with WordPress 2.9.x and 3.x, and have been tested through version 3.2.1.
+
+## Your contributions are welcome.
+
