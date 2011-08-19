@@ -99,90 +99,8 @@ class KitchenSink {
 
   function admin_init() {
 
-    //////////////////////////////////////////////////////////////////////////
-    // Settings pattern #1: Add options to existing options pages
-    //////////////////////////////////////////////////////////////////////////
-    
-    //////////////////////////////////////////////////////////////////////////
-    // Settings pattern #2: Create new section on existing options pages
-    //////////////////////////////////////////////////////////////////////////
-    
+    // not doing anything yet...
 
-    //////////////////////////////////////////////////////////////////////////
-    // Settings pattern #3: Custom options page
-    //////////////////////////////////////////////////////////////////////////
-    
-    /**
-     * The register_setting function employs WordPress' Settings API to 
-     * establish a WordPress option whose value may be updated by your plugin.
-     * Settings are grouped, and it is the group name that is used later to
-     * generate the form used for updating the options. 
-     *
-     * I have found that a good pattern for storing plugin settings is to group
-     * them all into a single option. This really simplifies storage and
-     * retrieval, and allows us to create a set of really useful helper 
-     * functions.
-     *
-     * @see KitchenSink->setting
-     * @see KitchenSink->id
-     * @see KitchenSink->field
-     * @see http://codex.wordpress.org/Function_Reference/register_setting
-     */
-    register_setting( __CLASS__, sprintf('%s_settings', __CLASS__), array( $this, 'sanitize_settings' ) );
-
-  }
-
-  function sanitize_settings($settings) {
-    
-
-
-    return $settings;
-
-  }
-
-  /**
-   * This function provides a convenient way to access your plugin's settings.
-   * The settings are serialized and stored in a single WP option. This function
-   * opens that serialized array, looks for $name, and if it's found, returns
-   * the value stored there. Otherwise, $default is returned.
-   * @param string $name
-   * @param mixed $default
-   * @return mixed
-   */
-  function setting($name, $default = null) {
-    $settings = get_option(sprintf('%s_settings', __CLASS__), array());
-    return isset($settings[$name]) ? $settings[$name] : $default;
-  }
-
-  /**
-   * Use this function in conjunction with Settings pattern #3 to generate the
-   * HTML ID attribute values for anything on the page. This will help
-   * to ensure that your field IDs are unique and scoped to your plugin.
-   *
-   * @see settings.php
-   */
-  function id($name, $echo = true) {
-    $id = sprintf('%s_settings_%s', __CLASS__, $name);
-    if ($echo) {
-      echo $id;
-    }
-    return $id;
-  }
-
-  /**
-   * Use this function in conjunction with Settings pattern #3 to generate the
-   * HTML NAME attribute values for form input fields. This will help
-   * to ensure that your field names are unique and scoped to your plugin, and
-   * named in compliance with the setting storage pattern defined above.
-   * 
-   * @see settings.php
-   */
-  function field($name, $echo = true) {
-    $field = sprintf('%s_settings[%s]', __CLASS__, $name);
-    if ($echo) {
-      echo $field;
-    }
-    return $field;
   }
 
   function admin_menu() {
@@ -240,13 +158,182 @@ class KitchenSink {
     // this line does exactly the same as the above, but without the comments
     //add_submenu_page( 'options-general.php', 'PHP Info', 'PHP Info', 'administrator', 'wp-plugin-phpinfo', array( $this, 'phpinfo' ) );
 
-    // Using Settings pattern #3? Create a page just for your plugin
-    add_submenu_page( 'options-general.php', 'Kitchen Sink', 'Kitchen Sink', 'administrator', 'wp-plugin-phpinfo', array( $this, 'settings' ) ); 
+     //////////////////////////////////////////////////////////////////////////
+    // Settings pattern #1: Add options to existing options pages
+    //////////////////////////////////////////////////////////////////////////
+    
+    //////////////////////////////////////////////////////////////////////////
+    // Settings pattern #2: Custom options page
+    //////////////////////////////////////////////////////////////////////////
+
+    add_options_page( 'Kitchen Sink', 'Kitchen Sink', 'administrator', __CLASS__, array( $this, 'settings' ) ); 
+    
+    /**
+     * The register_setting function employs WordPress' Settings API to 
+     * establish a WordPress option whose value may be updated by your plugin.
+     * Settings are grouped, and it is the group name that is used later to
+     * generate the form used for updating the options. 
+     *
+     * I have found that a good pattern for storing plugin settings is to group
+     * them all into a single option. This really simplifies storage and
+     * retrieval, and allows us to create a set of really useful helper 
+     * functions.
+     *
+     * Here we continue with the convention of using the __CLASS__ constant to
+     * extend the namespace anchored by our plugin's class name.
+     * You can use any value you wish, especially if your plugin has more than
+     * one group of settings, but if it does have more than one group of
+     * settings, you're probably making your plugin less minimalist than
+     * it could be.
+     *
+     * @see KitchenSink->setting
+     * @see KitchenSink->id
+     * @see KitchenSink->field
+     * @see http://codex.wordpress.org/Function_Reference/register_setting
+     */
+    register_setting( __CLASS__, sprintf('%s_settings', __CLASS__), array( $this, 'sanitize_settings' ) );
+
+    /**
+     * The register setting_section function also employs WordPress' 
+     * Settings API to create visually separate sections of form fields.
+     * The most basic line of separation is "Basic" and "Advanced," which is
+     * demonstrated below.
+     *
+     * The callback argument (argument #3) should be a funcion that produces
+     * content to display in this settings section. Here we begin a convention
+     * of referring to functions that don't actually exist, but are instead
+     * provided dynamically by this classes's __call function.
+     *
+     * Again here we see the convention of using the __CLASS__ constant to 
+     * keep all of these things related and scoped to our plugin.
+     *
+     * @see http://codex.wordpress.org/Function_Reference/add_settings_section
+     * @see KitchenSink->__call
+     */
+    add_settings_section( 'basic', 'Basic Settings', array( $this, 'basic_settings' ), __CLASS__ );
+    add_settings_section( 'advanced', 'Advanced Settings', array( $this, 'advanced_settings' ), __CLASS__ );
+
+    add_settings_field( 'text_field', 'Text Field', array( $this, 'text_field' ), __CLASS__, 'basic' );
     
   }
 
   function settings() {
+    ?>  
+      <div class="wrap">
+        <?php screen_icon() ?>
+        <h2>Kitchen Sink</h2>
+        <form action="<?php echo admin_url('options.php') ?>" method="post">
+          <?php settings_fields( __CLASS__ ) ?>
+          <?php do_settings_sections( __CLASS__ ) ?>
+          <input type="submit" class="button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
+        </form>
+      </div>
+    <?php
+  }
+
+  /**
+   * This function is reserved for callbacks that are used in establishing
+   * hooks for the Settings API. It is one of the PHP magic methods, and is
+   * invoked any time a method is called on $this that is not explicitly
+   * defined and/or is not accessible to the calling scope. 
+   *
+   * Ultimately the goal here is to have all of the fields generated on
+   * behalf of the Settings API to be defined together, as they would if they
+   * were hard-coded into a view file. As such, the order in which the dynamic
+   * responses appear in the body of this method should match the order in
+   * which they are to appear in final output. The actual order of the final
+   * HTML, however, is not dicated by this method. Their actual order is 
+   * precribed by the order in which the settings are created using 
+   * the add_settings_field function.
+   *
+   * @see http://www.php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.methods
+   * @see KitchenSink->admin_menu
+   */
+  function __call($name, $args) {
+
+    /**
+     * This is an example of content for a settings section. Note that we
+     * aren't generating any form inputs here -- those are handled by the
+     * callbacks registered by the add_settings_field function. No, all this
+     * needs to do (if anything) is summarize with some text.
+     */
+    if ($name == 'basic_settings') {
+      ?>
+        <p>These are the most essential configuration settings. You will want
+        to keep these to a minimum, all with intelligent defaults.</p>
+      <?php
+    }
+
+    if ($name == 'text_field') {
+      ?>
+        <input type="text" class="regular-text" id="<?php $this->id($name) ?>" name="<?php $this->field($name) ?>" value="<?php echo esc_attr( $this->setting($name, 'Default value') ) ?>" />
+        &nbsp; <span class="description">Extra notes are useful aids to complex decision making</span>
+      <?php
+    }
+
+    if ($name == 'advanced_settings') {
+      ?>
+        <p>The more esoteric options go here.</p>
+      <?php
+    }
+  }
+
+  function sanitize_settings($settings) {
     
+
+    /**
+     * Here we validate the settings the user submits, use the Settings API to 
+     * inform the user when something they've submitted is invalid.
+     */
+
+     add_settings_error( 'text_field', $this->id('text_field', false), 'foo' );
+
+    return $settings;
+  }
+
+  /**
+   * This function provides a convenient way to access your plugin's settings.
+   * The settings are serialized and stored in a single WP option. This function
+   * opens that serialized array, looks for $name, and if it's found, returns
+   * the value stored there. Otherwise, $default is returned.
+   * @param string $name
+   * @param mixed $default
+   * @return mixed
+   */
+  function setting($name, $default = null) {
+    $settings = get_option(sprintf('%s_settings', __CLASS__), array());
+    return isset($settings[$name]) ? $settings[$name] : $default;
+  }
+
+  /**
+   * Use this function in conjunction with Settings pattern #3 to generate the
+   * HTML ID attribute values for anything on the page. This will help
+   * to ensure that your field IDs are unique and scoped to your plugin.
+   *
+   * @see settings.php
+   */
+  function id($name, $echo = true) {
+    $id = sprintf('%s_settings_%s', __CLASS__, $name);
+    if ($echo) {
+      echo $id;
+    }
+    return $id;
+  }
+
+  /**
+   * Use this function in conjunction with Settings pattern #3 to generate the
+   * HTML NAME attribute values for form input fields. This will help
+   * to ensure that your field names are unique and scoped to your plugin, and
+   * named in compliance with the setting storage pattern defined above.
+   * 
+   * @see settings.php
+   */
+  function field($name, $echo = true) {
+    $field = sprintf('%s_settings[%s]', __CLASS__, $name);
+    if ($echo) {
+      echo $field;
+    }
+    return $field;
   }
   
 
@@ -254,14 +341,17 @@ class KitchenSink {
    * Invoke phpinfo(), revealing details of the current PHP configuration.
    */
   function phpinfo() {
-    ob_start(); phpinfo(); $phpinfo = ob_get_clean();
-
-    /**
-     * I like to put my view scripts, however simple, into external files, 
-     * and name them after the functions that are invoking them. This is a 
-     * throwback to my MVC days, but it seems to help me keep track of my files.
-     */
-    require( 'phpinfo.php' );
+    ob_start(); phpinfo(); $phpinfo = ob_get_clean();    
+    ?>
+      <style>
+        #phpinfo pre {  display:block; width: 740; height: 100%; overflow: hidden; }
+      </style>
+      <div class="wrap" id="phpinfo">
+        <?php screen_icon() ?>
+        <h2>PHP Info</h2>
+        <pre><?php echo strip_tags(str_replace('</td>', '&nbsp;', $phpinfo)) ?></pre>
+      </div>
+    <?php
   }
 
 
