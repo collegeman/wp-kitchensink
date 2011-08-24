@@ -11,7 +11,9 @@ At present, it includes examples of
 * Storing all of your plugin's configurable options via a simple, internal API, and a single WP option
 * Creating backend UIs without custom stylesheets
 * Adding admin menus
-* 
+* URL rewriting
+* Shortcodes
+* Creating custom oEmbed filters
 * AJAX 
 
 The examples are compatible with WordPress 2.9.x and 3.x, and have been tested through version 3.2.1.
