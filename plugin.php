@@ -391,6 +391,65 @@ class KitchenSink {
   }
 
   /**
+   * Invoke phpinfo(), revealing details of the current PHP configuration.
+   */
+  function phpinfo() {
+    ob_start(); phpinfo(); $phpinfo = ob_get_clean();    
+    ?>
+      <style>
+        #phpinfo pre {  display:block; width: 740; height: 100%; overflow: hidden; }
+      </style>
+      <div class="wrap" id="phpinfo">
+        <?php screen_icon() ?>
+        <h2>PHP Info</h2>
+        <pre><?php echo strip_tags(str_replace('</td>', '&nbsp;', $phpinfo)) ?></pre>
+      </div>
+    <?php
+  }
+
+  /**
+   * This is an example of a shortcode handler. It accepts two arguments:
+   * an array of name/value paired attributes, reflecting the attributes 
+   * the user used in deploying the shortcode; and a string, reflecting
+   * any content the user submitted between opening and closing tags.
+   *
+   * @param array $atts
+   * @param string $content
+   * @see KitchenSink->init
+   */
+  function today_shortcode($atts, $content = '') {
+      
+    #
+    # The WP core provides a special function for simultaneously filtering
+    # and establishing default attributes. Any attributes not defined in
+    # the default list are removed from the given input, and any not existing
+    # in the given input are filled-in with the default.
+    #
+    # Our example shortcode allows for one attribute, "format", which is
+    # expected to be a valid date formatting string, suitable for passing
+    # into the date() function.
+    #
+    extract( $atts = shortcode_atts( array(
+      'format' => 'M d, Y'
+    ), $atts ) );
+
+    #
+    # Shortcode functions should return the text that should replace the 
+    # shortcode in the content.
+    # @see http://php.net/manual/en/function.date.php
+    # @see http://codex.wordpress.org/Function_Reference/current_time
+    #
+    return date( $format, current_time('timestamp') );
+
+  }
+
+
+  // ===========================================================================
+  // Helper functions - Provided to your plugin, courtesy of wp-kitchensink
+  // http://github.com/collegeman/wp-kitchensink
+  // ===========================================================================
+  
+  /**
    * This function provides a convenient way to access your plugin's settings.
    * The settings are serialized and stored in a single WP option. This function
    * opens that serialized array, looks for $name, and if it's found, returns
@@ -464,60 +523,6 @@ class KitchenSink {
       echo 'selected="selected"';
     }
   }
-
-  /**
-   * Invoke phpinfo(), revealing details of the current PHP configuration.
-   */
-  function phpinfo() {
-    ob_start(); phpinfo(); $phpinfo = ob_get_clean();    
-    ?>
-      <style>
-        #phpinfo pre {  display:block; width: 740; height: 100%; overflow: hidden; }
-      </style>
-      <div class="wrap" id="phpinfo">
-        <?php screen_icon() ?>
-        <h2>PHP Info</h2>
-        <pre><?php echo strip_tags(str_replace('</td>', '&nbsp;', $phpinfo)) ?></pre>
-      </div>
-    <?php
-  }
-
-  /**
-   * This is an example of a shortcode handler. It accepts two arguments:
-   * an array of name/value paired attributes, reflecting the attributes 
-   * the user used in deploying the shortcode; and a string, reflecting
-   * any content the user submitted between opening and closing tags.
-   *
-   * @param array $atts
-   * @param string $content
-   * @see KitchenSink->init
-   */
-  function today_shortcode($atts, $content = '') {
-      
-    #
-    # The WP core provides a special function for simultaneously filtering
-    # and establishing default attributes. Any attributes not defined in
-    # the default list are removed from the given input, and any not existing
-    # in the given input are filled-in with the default.
-    #
-    # Our example shortcode allows for one attribute, "format", which is
-    # expected to be a valid date formatting string, suitable for passing
-    # into the date() function.
-    #
-    extract( $atts = shortcode_atts( array(
-      'format' => 'M d, Y'
-    ), $atts ) );
-
-    #
-    # Shortcode functions should return the text that should replace the 
-    # shortcode in the content.
-    # @see http://php.net/manual/en/function.date.php
-    # @see http://codex.wordpress.org/Function_Reference/current_time
-    #
-    return date( $format, current_time('timestamp') );
-
-  }
-
   
 }
 
