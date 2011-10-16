@@ -264,7 +264,7 @@ class KitchenSink {
           <p>These are the most essential configuration settings. You will want
             to keep these to a minimum, all with intelligent defaults.</p>
 
-          <table class="admin-table">
+          <table class="form-table">
 
             <tr>
               <th>
