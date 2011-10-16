@@ -5,7 +5,7 @@ Description: A consolidated set of examples for working with the WordPress core 
 Version: 1.0
 Author: Aaron Collegeman, Fat Panda
 Author URI: http://aaroncollegeman.com/fatpanda
-Plugin URI: http://github.com/collegeman/wp-plugin
+Plugin URI: http://github.com/collegeman/wp-kitchensink
 */
 
 /**
@@ -226,7 +226,23 @@ class KitchenSink {
      #
     register_setting( __CLASS__, sprintf('%s_settings', __CLASS__), array( $this, 'sanitize_settings' ) );
 
-    
+     #
+     # The register setting_section function also employs WordPress' 
+     # Settings API to create visually separate sections of form fields.
+     # The most essential line of separation is "Basic" and "Advanced,"
+     # demonstrated below.
+     #
+     # The callback argument (argument #3) should be a funcion that produces
+     # content to display in this settings section (above the form inputs). 
+     #
+     # Here we begin a convention of referring to functions that don't actually 
+     # exist, but are instead provided dynamically by this classes's __call 
+     # function. These call backs are composed in the same way as their
+     # explicitly defined counterparts.
+     #
+     # @see http://codex.wordpress.org/Function_Reference/add_settings_section
+     # @see KitchenSink->__call
+     #
     add_settings_section( 'basic', 'Basic Settings', array( $this, 'basic_settings' ), __CLASS__ );
     add_settings_section( 'advanced', 'Advanced Settings', array( $this, 'advanced_settings' ), __CLASS__ );
 
@@ -258,90 +274,108 @@ class KitchenSink {
         <h2>Kitchen Sink</h2>
         <form action="<?php echo admin_url('options.php') ?>" method="post">
           <?php settings_fields( __CLASS__ ) ?>
-          
-          <h3 class="title">Basic Settings</h3>
-              
-          <p>These are the most essential configuration settings. You will want
-            to keep these to a minimum, all with intelligent defaults.</p>
-
-          <table class="admin-table">
-
-            <tr>
-              <th>
-                <label for="<?php $this->id('text_field') ?>">Text Field</label>
-              </th>
-              <td>
-                <input type="text" class="regular-text" id="<?php $this->id('text_field') ?>" name="<?php $this->field('text_field') ?>" value="<?php echo esc_attr( $this->setting('text_field', 'Default value') ) ?>" />
-                &nbsp; <span class="description">Extra notes are useful aids to complex decision making</span>
-              </td>
-            </tr>
-
-            <tr>
-              <th>
-                <label>Horizontal Radio Fields</label>
-              </th>
-              <td>
-                <span>
-                  <input type="radio" id="<?php $this->id('h_radio_field') ?>_1" name="<?php $this->field('h_radio_field') ?>" value="1" <?php $this->checked( 'h_radio_field', 1 ) ?> />
-                  <label for="<?php $this->id('h_radio_field') ?>_1">Yes</label>
-                </span>
-                <span style="margin-left:20px;">
-                  <input type="radio" id="<?php $this->id('h_radio_field') ?>_0" name="<?php $this->field('h_radio_field') ?>" value="0" <?php $this->checked( 'h_radio_field', 0 ) ?> />
-                  <label for="<?php $this->id('h_radio_field') ?>_0">No</label>
-                </span>
-                <span class="description" style="margin-left:50px;">It's hard to get more specific basic than "yes or no"</span>
-              </td>
-            </tr>
-
-            <tr>
-              <th>
-                <label>Horizontal Radio Fields</label>
-              </th>
-              <td>
-                <p>
-                  <input type="radio" id="<?php $this->id('v_radio_field') ?>_1" name="<?php $this->field('v_radio_field') ?>" value="1" <?php $this->checked( 'v_radio_field', 1 ) ?> />
-                  <label for="<?php $this->id('v_radio_field') ?>_1">Yes</label>
-                </p>
-                <p>
-                  <input type="radio" id="<?php $this->id('v_radio_field') ?>_2" name="<?php $this->field('v_radio_field') ?>" value="2" <?php $this->checked( 'v_radio_field', 2) ?> />
-                  <label for="<?php $this->id('v_radio_field') ?>_2">No</label>
-                </p>
-                <p>
-                  <input type="radio" id="<?php $this->id('v_radio_field') ?>_3" name="<?php $this->field('v_radio_field') ?>" value="3" <?php $this->checked( 'v_radio_field', 3) ?> />
-                  <label for="<?php $this->id('v_radio_field') ?>_3">Maybe</label>
-                  <span style="margin-left:20px;">
-                    <select id="<?php $this->id('v_radio_field') ?>_options" name="<?php $this->field('v_radio_field_options') ?>" disabled="disabled">
-                      <option value="<?php echo self::IN_THE_MORNING ?>" <?php $this->selected( 'v_radio_field_options', self::IN_THE_MORNING ) ?>>In the morning</option>
-                      <option value="<?php echo self::IN_THE_EVENING ?>" <?php $this->selected( 'v_radio_field_options', self::IN_THE_EVENING ) ?>>In the evening</option>
-                      <option value="<?php echo self::AINT_WE_GOT_FUN ?>" <?php $this->selected( 'v_radio_field_options', self::AINT_WE_GOT_FUN ) ?>>Ain't we got fun?</option>
-                    </select>
-                  </span>
-                </p>
-
-                <script>
-                  (function($) {
-                    var onChange = function() {
-                      var checked = $('#<?php $this->id('v_radio_field') ?>_3').attr('checked');
-                      $('#<?php $this->id('v_radio_field_options') ?>').attr('disabled', !checked);
-                    };
-                    $('input[name="<?php $this->field('v_radio_field') ?>"]').change(onChange);
-                    onChange();
-                  })(jQuery);
-                </script>
-              </td>
-            </tr>
-          
-          </table>
-          
-          <h3 class="title">Advanced Fields</h3>  
-        
-          <p>The more esoteric options go here.</p>
-          
+          <?php do_settings_sections( __CLASS__ ) ?>
           <input type="submit" class="button-primary" value="<?php esc_attr_e('Save Changes'); ?>" />
         </form>
       </div>
     <?php
   }
+
+  /**
+   * This function is reserved for callbacks that are used in establishing
+   * hooks for the Settings API. It is one of the PHP magic methods, and is
+   * invoked any time a method is called on $this that is not explicitly
+   * defined and/or is not accessible to the calling scope. 
+   *
+   * Ultimately the goal here is to have all of the fields generated on
+   * behalf of the Settings API to be defined together, as they would if they
+   * were hard-coded into a view file. As such, the order in which the dynamic
+   * responses appear in the body of this method should match the order in
+   * which they are to appear in final output. The actual order of the final
+   * HTML, however, is not dicated by this method. Their actual order is 
+   * precribed by the order in which the settings are created using 
+   * the add_settings_field function.
+   *
+   * @see http://www.php.net/manual/en/language.oop5.overloading.php#language.oop5.overloading.methods
+   * @see KitchenSink->admin_menu
+   */
+  function __call($name, $args) {
+
+     #
+     # This is an example of content for a settings section. Note that we
+     # aren't generating any form inputs here -- those are handled by the
+     # callbacks registered by the add_settings_field function. No, all this
+     # needs to do (if anything) is summarize with some text.
+     #
+    if ($name === 'basic_settings') {
+      ?>
+        <p>These are the most essential configuration settings. You will want
+        to keep these to a minimum, all with intelligent defaults.</p>
+      <?php
+    }
+
+    if ($name === 'text_field') {
+      ?>
+        <input type="text" class="regular-text" id="<?php $this->id($name) ?>" name="<?php $this->field($name) ?>" value="<?php echo esc_attr( $this->setting($name, 'Default value') ) ?>" />
+        &nbsp; <span class="description">Extra notes are useful aids to complex decision making</span>
+      <?php
+    }
+
+    if ($name === 'h_radio_field') {
+      ?>
+        <span>
+          <input type="radio" id="<?php $this->id($name) ?>_1" name="<?php $this->field($name) ?>" value="1" <?php $this->checked( $name, 1 ) ?> />
+          <label for="<?php $this->id($name) ?>_1">Yes</label>
+        </span>
+        <span style="margin-left:20px;">
+          <input type="radio" id="<?php $this->id($name) ?>_0" name="<?php $this->field($name) ?>" value="0" <?php $this->checked( $name, 0 ) ?> />
+          <label for="<?php $this->id($name) ?>_0">No</label>
+        </span>
+        <span class="description" style="margin-left:50px;">It's hard to get more specific basic than "yes or no"</span>
+      <?php
+    }
+
+    if ($name === 'v_radio_field') {
+      ?>
+        <p>
+          <input type="radio" id="<?php $this->id($name) ?>_1" name="<?php $this->field($name) ?>" value="1" <?php $this->checked( $name, 1 ) ?> />
+          <label for="<?php $this->id($name) ?>_1">Yes</label>
+        </p>
+        <p>
+          <input type="radio" id="<?php $this->id($name) ?>_2" name="<?php $this->field($name) ?>" value="2" <?php $this->checked( $name, 2) ?> />
+          <label for="<?php $this->id($name) ?>_2">No</label>
+        </p>
+        <p>
+          <input type="radio" id="<?php $this->id($name) ?>_3" name="<?php $this->field($name) ?>" value="3" <?php $this->checked( $name, 3) ?> />
+          <label for="<?php $this->id($name) ?>_3">Maybe</label>
+          <span style="margin-left:20px;">
+            <select id="<?php $this->id($name) ?>_options" name="<?php $this->field($name.'_options') ?>" disabled="disabled">
+              <option value="<?php echo self::IN_THE_MORNING ?>" <?php $this->selected( $name.'_options', self::IN_THE_MORNING ) ?>>In the morning</option>
+              <option value="<?php echo self::IN_THE_EVENING ?>" <?php $this->selected( $name.'_options', self::IN_THE_EVENING ) ?>>In the evening</option>
+              <option value="<?php echo self::AINT_WE_GOT_FUN ?>" <?php $this->selected( $name.'_options', self::AINT_WE_GOT_FUN ) ?>>Ain't we got fun?</option>
+            </select>
+          </span>
+        </p>
+
+        <script>
+          (function($) {
+            var onChange = function() {
+              var checked = $('#<?php $this->id($name) ?>_3').attr('checked');
+              $('#<?php $this->id($name.'_options') ?>').attr('disabled', !checked);
+            };
+            $('input[name="<?php $this->field($name) ?>"]').change(onChange);
+            onChange();
+          })(jQuery);
+        </script>
+      <?php
+    }
+
+    if ($name === 'advanced_settings') {
+      ?>
+        <p>The more esoteric options go here.</p>
+      <?php
+    }
+  } // END __call
 
   function sanitize_settings($settings) {
     
@@ -500,4 +534,4 @@ KitchenSink::load();
 #
 # Load global functions (e.g., template functions)
 #
-require(dirname(__FILE__).'/globals.php');
+require_once(dirname(__FILE__).'/globals.php');
