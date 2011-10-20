@@ -27,7 +27,7 @@ class KitchenSinkFramework {
       add_action( 'admin_menu', array( $this, 'admin_menu' ) );
     }
 
-    // add_shortcode( 'today', array($this, 'today_shortcode') );
+    add_shortcode( 'today', array($this, 'today_shortcode') );
   }
 
   function admin_init() {}
@@ -58,6 +58,17 @@ class KitchenSinkFramework {
     // add_settings_error( 'text_field', $this->id('text_field', false), 'foo' );
 
     return $settings;
+  }
+
+
+  function today_shortcode($atts, $content = '') {
+      
+    extract( $atts = shortcode_atts( array(
+      'format' => 'M d, Y'
+    ), $atts ) );
+
+    return date( $format, current_time('timestamp') );
+
   }
 
   // ===========================================================================
